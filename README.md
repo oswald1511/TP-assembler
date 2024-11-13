@@ -18,7 +18,7 @@ A brief description of what this project does and who it's for
 
 Para ejecutar y correr usar los siguientes comandos
 ```bash
-    ./run_asm.sh decodificador.sh
+    ./run_asm.sh decodificador.asm
 ```
     
 ## Apendice
