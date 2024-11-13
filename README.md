@@ -23,4 +23,4 @@ Para ejecutar y correr usar los siguientes comandos
     
 ## Apendice
 
-informacion adicional aqui
+fecha de entrega 5/12/2024
