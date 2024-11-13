@@ -18,8 +18,7 @@ A brief description of what this project does and who it's for
 
 Para ejecutar y correr usar los siguientes comandos
 ```bash
-    nasm no se que no se que 
-    elf64 wachiwachi.o
+    ./run_asm.sh decodificador.sh
 ```
     
 ## Apendice
