@@ -1,4 +1,7 @@
-; Colocar nombre y padron de los integrantes del grupo
+;INTEGRANTES:
+;Oswaldo Maldonado, 110404
+;Celeste Lai, 110
+ 
 %include "macros.asm"
 
 global	main
@@ -8,6 +11,7 @@ section	.data
 						db	0x86, 0xFC, 0x22, 0xA9, 0x3D, 0x7C, 0xA4, 0x51 
 						db	0x63, 0x7C, 0x29, 0x04, 0x93, 0xBB, 0x65, 0x18 
 	largoSecuenciaA		db	0x18 ; 24d
+	;output esperado: "xJQ3lWOiHTyG/CKpPXykUWN8KQSTu2UY"
 
 	secuenciaImprmibleB db	"vhyAHZucgTUuznwTDciGQ8m4TuvUIyjU"
 	largoSecuenciaB		db	0x20 ; 32d
@@ -34,7 +38,9 @@ section	.bss
 section	.text
 
     main:
-
+		;plan de ataque: con un while/for ir leyendo la tira de bits de 6 en 6 hasta que se acabe.
+		;cada 6 bits que leo los paso al decodificador que lo convierte en su valor de la tabla (no tengo idea todavia de como moverme en la tabla TBD)
+		;luego el bit decodificado se guarda en la variable secuenciaImprimibleA
 
 
 
