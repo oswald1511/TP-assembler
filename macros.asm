@@ -6,4 +6,3 @@
 %endmacro
 
 extern printf
-extern scanf

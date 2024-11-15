@@ -7,17 +7,6 @@
 global	main
 
 section	.data
-	secuenciaBinariaA	db	0xC4, 0x94, 0x37, 0x95, 0x63, 0xA2, 0x1D, 0x3C 
-						db	0x86, 0xFC, 0x22, 0xA9, 0x3D, 0x7C, 0xA4, 0x51 
-						db	0x63, 0x7C, 0x29, 0x04, 0x93, 0xBB, 0x65, 0x18 
-	largoSecuenciaA		db	0x18 ; 24d
-	;output esperado: "xJQ3lWOiHTyG/CKpPXykUWN8KQSTu2UY"
-
-	secuenciaImprmibleB db	"vhyAHZucgTUuznwTDciGQ8m4TuvUIyjU"
-	largoSecuenciaB		db	0x20 ; 32d
-
-	TablaConversion		db	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	
 ; Casos de prueba:
 ; SecuenciaBinariaDePrueba db	0x73, 0x38, 0xE7, 0xF7, 0x34, 0x2C, 0x4F, 0x92
 ;						   db	0x49, 0x55, 0xE5, 0x9F, 0x8E, 0xF2, 0x75, 0x5A 
@@ -31,17 +20,68 @@ section	.data
  
 ; Un codificador/decodificador online se puede encontrar en https://www.rapidtables.com/web/tools/base64-encode.html
 	
+	secuenciaBinariaA	db	0xC4, 0x94, 0x37, 0x95, 0x63, 0xA2, 0x1D, 0x3C 
+						db	0x86, 0xFC, 0x22, 0xA9, 0x3D, 0x7C, 0xA4, 0x51 
+						db	0x63, 0x7C, 0x29, 0x04, 0x93, 0xBB, 0x65, 0x18 
+	largoSecuenciaA		db	0x18 ; 24d
+	;output esperado: "xJQ3lWOiHTyG/CKpPXykUWN8KQSTu2UY"
+
+	secuenciaImprmibleB db	"vhyAHZucgTUuznwTDciGQ8m4TuvUIyjU"
+	largoSecuenciaB		db	0x20 ; 32d
+
+	TablaConversion		db	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+    bytes db 0xAA, 0xBB, 0xCC  ; Ejemplo de 3 bytes
+
+	
 section	.bss
 	secuenciaImprimibleA	resb	32
 	secuenciaBinariaB		resb	24
 	
+;plan de ataque:
+;cada 6 bits que leo los paso al decodificador que lo convierte en su valor de la tabla (no tengo idea todavia de como moverme en la tabla TBD)
+;luego el bit decodificado se guarda en la variable secuenciaImprimibleA
+;hay que hacer el manejo de bits para los primeros tres bytes y despues se va repitiendo de 3 en 3
+;se separaria asi: 62(primer byte) 44(segundo) 26(tercero)
+;y luego se hace lo mismo si quedan 3 bytes mas
 section	.text
+;esto me lo dio el gpt, lo entendi asi que me parece una buena implemntacion. solo  falta cambiar los nombres y otras cosas. pero la idea es buena | | | | | | | |
+;        v v v v v v v v(abajo)
+main:
+    mov rsi, bytes           ; Puntero a los datos de entrada
+    mov rdi, 0               ; Puntero al buffer de salida (por ejemplo, en la pila)
+    mov rcx, 3               ; Número de bytes a procesar
 
-    main:
-		;plan de ataque: con un while/for ir leyendo la tira de bits de 6 en 6 hasta que se acabe.
-		;cada 6 bits que leo los paso al decodificador que lo convierte en su valor de la tabla (no tengo idea todavia de como moverme en la tabla TBD)
-		;luego el bit decodificado se guarda en la variable secuenciaImprimibleA
+process_bytes:
+    ; Cargar el primer byte
+    mov al, [rsi]
+    ; Extraer los primeros 6 bits
+    and al, 0xFC              ; 0xFC = 1111 1100
+    shr al, 2               ; Desplazar a la derecha 2 bits
+    ; Guardar el resultado
+    mov [rdi], al
+    add rdi, 1               ; Avanzar el puntero de salida
 
+    ; Cargar el segundo byte
+    mov al, [rsi+1]
+    ; Extraer los 2 bits más bajos
+    and al, 0x03              ; 0x03 = 0000 0011
+    shl al, 4               ; Desplazar a la izquierda 4 bits
+    ; Cargar el tercer byte
+    mov bl, [rsi+2]
+    ; Extraer los 4 bits más altos
+    and bl, 0xF0              ; 0xF0 = 1111 0000
+    shr bl, 4               ; Desplazar a la derecha 4 bits
+    or  al, bl               ; Combinar con los 2 bits del segundo byte
+    ; Guardar el resultado
+    mov [rdi], al
+    add rdi, 1               ; Avanzar el puntero de salida
 
+    ; Avanzar al siguiente grupo de 3 bytes
+    add rsi, 3
+    loop process_bytes
 
-		ret
+    ; Salir del programa
+    mov eax, 60                  ; Syscall para salir
+    xor edi, edi                   ; Código de salida 0
+    syscall
