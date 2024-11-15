@@ -1,6 +1,6 @@
 ;INTEGRANTES:
 ;Oswaldo Maldonado, 110404
-;Celeste Lai, 110
+;Celeste Lai, 110 PON TU PADRON CARAJO
  
 %include "macros.asm"
 
@@ -39,20 +39,17 @@ section	.bss
 	secuenciaBinariaB		resb	24
 	
 ;plan de ataque:
-;cada 6 bits que leo los paso al decodificador que lo convierte en su valor de la tabla (no tengo idea todavia de como moverme en la tabla TBD)
-;luego el bit decodificado se guarda en la variable secuenciaImprimibleA
-;hay que hacer el manejo de bits para los primeros tres bytes y despues se va repitiendo de 3 en 3
-;se separaria asi: 62(primer byte) 44(segundo) 26(tercero)
-;y luego se hace lo mismo si quedan 3 bytes mas
+;hago el manejo de bytes de 3 en 3 y voy almacenando en el registro rdi. Cada 3 bytes se guardan 4 bytes en rdi pero todo con 00 al principio, se entiende? si no se entiende, me preguntas. Esa parte esta hecha aunque no compila, pero la logica esta.
+;luego paso el registro rdi que va a tener los 32 bytes al decodificador a que traduzca su valor con la tabla
+;luego el byte decodificado se guarda en la variable secuenciaImprimibleA
 section	.text
-;esto me lo dio el gpt, lo entendi asi que me parece una buena implemntacion. solo  falta cambiar los nombres y otras cosas. pero la idea es buena | | | | | | | |
-;        v v v v v v v v(abajo)
 main:
-    mov rsi, bytes           ; Puntero a los datos de entrada
-    mov rdi, 0               ; Puntero al buffer de salida (por ejemplo, en la pila)
-    mov rcx, 3               ; Número de bytes a procesar
-
-process_bytes:
+    mov rsi, bytes                      ; Puntero a los datos de entrada
+    mov rdi, 0                          ; Puntero de salida 
+    movzx rax, byte [largoSecuenciaA]   ; Número de bytes a procesar 
+    cmp rax, 0
+    je final_programa                   ; si el largo de la secuencia es 0 salta al final del programa
+procesar_bytes:
     ; Cargar el primer byte
     mov al, [rsi]
     ; Extraer los primeros 6 bits
@@ -61,27 +58,47 @@ process_bytes:
     ; Guardar el resultado
     mov [rdi], al
     add rdi, 1               ; Avanzar el puntero de salida
-
-    ; Cargar el segundo byte
-    mov al, [rsi+1]
+    ; Cargar de nuevo el primer byte
+    mov al, [rsi]
     ; Extraer los 2 bits más bajos
     and al, 0x03              ; 0x03 = 0000 0011
     shl al, 4               ; Desplazar a la izquierda 4 bits
-    ; Cargar el tercer byte
-    mov bl, [rsi+2]
+    ; Cargar el segundo byte
+    mov bl, [rsi+1]
     ; Extraer los 4 bits más altos
     and bl, 0xF0              ; 0xF0 = 1111 0000
     shr bl, 4               ; Desplazar a la derecha 4 bits
-    or  al, bl               ; Combinar con los 2 bits del segundo byte
+    or  al, bl               ; Combinar con los 2 bits del primer byte
     ; Guardar el resultado
     mov [rdi], al
     add rdi, 1               ; Avanzar el puntero de salida
+    ; cargar el segundo byte 
+    mov al, [rsi+1]
+    ; Extraer los 4 bits mas bajos
+    and al, 0x0F        ; 0x0F = 0000 1111
+    shl al, 4           ;desplazar a las izquierda 4 bits
+    ; Cargar el tercer byte
+    mov bl, [rsi+2]
+    ; Extraer los dos bits mas altos
+    and bl, 0xC0        ; 0xC0 = 1100 0000
+    shr bl, 6           ;desplazar a la derecha 6 bits
+    or al, bl           ;combinar los 4 bits del 2do byte con los 2 bits del 3er byte
+    ; Guardar el resultado
+    mov [rdi], al
+    add rdi, 1          ; Avanzar el puntero de salida
+    ; Cargar el tercer byte
+    mov al, [rsi+2]
+    ; Extraer los 6 bits mas bajos
+    and al, 0x3F        ; 0x3F = 0011 1111
+    ;Guardar el resultado
+    mov [rdi], al
+    add rdi, 1      ; Avanzar el puntero de salida
 
     ; Avanzar al siguiente grupo de 3 bytes
     add rsi, 3
-    loop process_bytes
+    sub rax, 3
+    cmp rax, 0              ;si rax es diferento de 0 significa que todavia faltan grupos de 3 bytes por procesar
+    jne procesar_bytes
 
-    ; Salir del programa
-    mov eax, 60                  ; Syscall para salir
-    xor edi, edi                   ; Código de salida 0
-    syscall
+final_programa:
+    ret
