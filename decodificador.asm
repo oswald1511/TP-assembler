@@ -1,10 +1,8 @@
 ;INTEGRANTES:
 ;Oswaldo Maldonado, 110404
-;Celeste Lai, 110 PON TU PADRON CARAJO
+;Celeste Lai, 110298
  
 %include "macros.asm"
-
-global	main
 
 section	.data
 ; Casos de prueba:
@@ -36,6 +34,7 @@ section	.data
 	
 section	.bss
 	secuenciaImprimibleA	resb	32
+    resultado               resb    32
 	secuenciaBinariaB		resb	24
 	
 ;plan de ataque:
@@ -43,15 +42,17 @@ section	.bss
 ;luego paso el registro rdi que va a tener los 32 bytes al decodificador a que traduzca su valor con la tabla
 ;luego el byte decodificado se guarda en la variable secuenciaImprimibleA
 section	.text
+global	main
+
 main:
     mov rsi, bytes                      ; Puntero a los datos de entrada
-    mov rdi, 0                          ; Puntero de salida 
+    mov rdi, secuenciaImprimibleA                          ; Puntero de salida 
     movzx rax, byte [largoSecuenciaA]   ; Número de bytes a procesar 
     cmp rax, 0
     je final_programa                   ; si el largo de la secuencia es 0 salta al final del programa
 procesar_bytes:
     ; Cargar el primer byte
-    mov al, [rsi]
+    mov al, byte [rsi]
     ; Extraer los primeros 6 bits
     and al, 0xFC              ; 0xFC = 1111 1100
     shr al, 2               ; Desplazar a la derecha 2 bits
@@ -59,7 +60,7 @@ procesar_bytes:
     mov [rdi], al
     add rdi, 1               ; Avanzar el puntero de salida
     ; Cargar de nuevo el primer byte
-    mov al, [rsi]
+    mov al, byte [rsi]
     ; Extraer los 2 bits más bajos
     and al, 0x03              ; 0x03 = 0000 0011
     shl al, 4               ; Desplazar a la izquierda 4 bits
@@ -71,7 +72,7 @@ procesar_bytes:
     or  al, bl               ; Combinar con los 2 bits del primer byte
     ; Guardar el resultado
     mov [rdi], al
-    add rdi, 1               ; Avanzar el puntero de salida
+    add rdi, 1             ; Avanzar el puntero de salida
     ; cargar el segundo byte 
     mov al, [rsi+1]
     ; Extraer los 4 bits mas bajos
@@ -85,14 +86,14 @@ procesar_bytes:
     or al, bl           ;combinar los 4 bits del 2do byte con los 2 bits del 3er byte
     ; Guardar el resultado
     mov [rdi], al
-    add rdi, 1          ; Avanzar el puntero de salida
+    add rdi, 1         ; Avanzar el puntero de salida
     ; Cargar el tercer byte
     mov al, [rsi+2]
     ; Extraer los 6 bits mas bajos
     and al, 0x3F        ; 0x3F = 0011 1111
     ;Guardar el resultado
     mov [rdi], al
-    add rdi, 1      ; Avanzar el puntero de salida
+    add rdi, 1     ; Avanzar el puntero de salida
 
     ; Avanzar al siguiente grupo de 3 bytes
     add rsi, 3
