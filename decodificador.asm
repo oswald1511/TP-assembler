@@ -23,9 +23,9 @@ section	.data
 						db	0x63, 0x7C, 0x29, 0x04, 0x93, 0xBB, 0x65, 0x18 
 	largoSecuenciaA		db	0x18 ; 24d
 
-    resultado           db  0x2A, 0x2B, 0x2F, 0xC  ; Ejemplo 3 bytes  0xAA, 0xBB, 0xCC resultado esperado : qrvM
+    ;resultado           db  0x2A, 0x2B, 0x2F, 0xC  ; Ejemplo 3 bytes  0xAA, 0xBB, 0xCC resultado esperado : qrvM
    
-    pr               db  "%s",0
+    ;pr               db  "%s",0
 
 
 	;output esperado: "xJQ3lWOiHTyG/CKpPXykUWN8KQSTu2UY"
@@ -37,12 +37,12 @@ section	.data
 
     bytes db 0xAA, 0xBB, 0xCC  ; Ejemplo de 3 bytes
 
-    largoResultado      db  0x20
+    ;largoResultado      db  0x4
 
 	
 section	.bss
 	secuenciaImprimibleA	resb	32
-    ; resultado               resb    32
+    resultado               resb    32
 	secuenciaBinariaB		resb	24
 	
 ;plan de ataque:
@@ -53,90 +53,90 @@ section	.text
 global	main
 
 main:
-;     mov rsi, bytes                      ; Puntero a los datos de entrada
-;     mov rdi, resultado                  ; Puntero de salida a resultado
-;     movzx rax, byte [largoSecuenciaA]   ; Número de bytes a procesar 
-;     cmp rax, 0
-;     je final_programa                   ; si el largo de la secuencia es 0 salta al final del programa
-; procesar_bytes:
-;     ; Cargar el primer byte
-;     mov al, byte [rsi]
-;     ; Extraer los primeros 6 bits
-;     and al, 0xFC              ; 0xFC = 1111 1100
-;     shr al, 2               ; Desplazar a la derecha 2 bits
-;     ; Guardar el resultado
-;     mov [rdi], al
-;     add rdi, 1               ; Avanzar el puntero de salida
-;     ; Cargar de nuevo el primer byte
-;     mov al, byte [rsi]
-;     ; Extraer los 2 bits más bajos
-;     and al, 0x03              ; 0x03 = 0000 0011
-;     shl al, 4               ; Desplazar a la izquierda 4 bits
-;     ; Cargar el segundo byte
-;     mov bl, [rsi+1]
-;     ; Extraer los 4 bits más altos
-;     and bl, 0xF0              ; 0xF0 = 1111 0000
-;     shr bl, 4               ; Desplazar a la derecha 4 bits
-;     or  al, bl               ; Combinar con los 2 bits del primer byte
-;     ; Guardar el resultado
-;     mov [rdi], al
-;     add rdi, 1             ; Avanzar el puntero de salida
-;     ; cargar el segundo byte 
-;     mov al, [rsi+1]
-;     ; Extraer los 4 bits mas bajos
-;     and al, 0x0F        ; 0x0F = 0000 1111
-;     shl al, 4           ;desplazar a las izquierda 4 bits
-;     ; Cargar el tercer byte
-;     mov bl, [rsi+2]
-;     ; Extraer los dos bits mas altos
-;     and bl, 0xC0        ; 0xC0 = 1100 0000
-;     shr bl, 6           ;desplazar a la derecha 6 bits
-;     or al, bl           ;combinar los 4 bits del 2do byte con los 2 bits del 3er byte
-;     ; Guardar el resultado
-;     mov [rdi], al
-;     add rdi, 1         ; Avanzar el puntero de salida
-;     ; Cargar el tercer byte
-;     mov al, [rsi+2]
-;     ; Extraer los 6 bits mas bajos
-;     and al, 0x3F        ; 0x3F = 0011 1111
-;     ;Guardar el resultado
-;     mov [rdi], al
-;     add rdi, 1     ; Avanzar el puntero de salida
+    mov rsi, bytes                      ; Puntero a los datos de entrada
+    mov rdi, resultado                  ; Puntero de salida a resultado
+    movzx r15, byte [largoSecuenciaA]   ; Número de bytes a procesar 
+    cmp r15, 0
+    je final_programa                   ; si el largo de la secuencia es 0 salta al final del programa
+procesar_bytes:
+    ; Cargar el primer byte
+    mov al, byte [rsi]
+    ; Extraer los primeros 6 bits
+    and al, 0xFC              ; 0xFC = 1111 1100
+    shr al, 2               ; Desplazar a la derecha 2 bits
+    ; Guardar el resultado
+    mov [rdi], al
+    add rdi, 1               ; Avanzar el puntero de salida
+    ; Cargar de nuevo el primer byte
+    mov al, byte [rsi]
+    ; Extraer los 2 bits más bajos
+    and al, 0x03              ; 0x03 = 0000 0011
+    shl al, 4               ; Desplazar a la izquierda 4 bits
+    ; Cargar el segundo byte
+    mov bl, [rsi+1]
+    ; Extraer los 4 bits más altos
+    and bl, 0xF0              ; 0xF0 = 1111 0000
+    shr bl, 4               ; Desplazar a la derecha 4 bits
+    or  al, bl               ; Combinar con los 2 bits del primer byte
+    ; Guardar el resultado
+    mov [rdi], al
+    add rdi, 1             ; Avanzar el puntero de salida
+    ; cargar el segundo byte 
+    mov al, [rsi+1]
+    ; Extraer los 4 bits mas bajos
+    and al, 0x0F        ; 0x0F = 0000 1111
+    shl al, 4           ;desplazar a las izquierda 4 bits
+    ; Cargar el tercer byte
+    mov bl, [rsi+2]
+    ; Extraer los dos bits mas altos
+    and bl, 0xC0        ; 0xC0 = 1100 0000
+    shr bl, 6           ;desplazar a la derecha 6 bits
+    or al, bl           ;combinar los 4 bits del 2do byte con los 2 bits del 3er byte
+    ; Guardar el resultado
+    mov [rdi], al
+    add rdi, 1         ; Avanzar el puntero de salida
+    ; Cargar el tercer byte
+    mov al, [rsi+2]
+    ; Extraer los 6 bits mas bajos
+    and al, 0x3F        ; 0x3F = 0011 1111
+    ;Guardar el resultado
+    mov [rdi], al
+    add rdi, 1     ; Avanzar el puntero de salida
 
-;     ; Avanzar al siguiente grupo de 3 bytes
-;     add rsi, 3
-;     sub rax, 3
-;     cmp rax, 0              ;si rax es diferento de 0 significa que todavia faltan grupos de 3 bytes por procesar
-;     jne procesar_bytes
+    ; Avanzar al siguiente grupo de 3 bytes
+    add rsi, 3
+    sub r15, 3
+    cmp r15, 0              ;si rax es diferento de 0 significa que todavia faltan grupos de 3 bytes por procesar
+    jne procesar_bytes
 
-; final_programa:
-;     ret
+final_programa:
+    ret
 
 
 
-conversion:
-    mov rdi, secuenciaImprimibleA
-    lea rsi, [TablaConversion]
-    mov rbx, resultado
-    mov r15, [largoResultado]
+; conversion:
+;     mov rdi, secuenciaImprimibleA
+;     lea rsi, [TablaConversion]
+;     mov rbx, resultado
+;     mov r15, [largoResultado]
     
-    bucle:
-        cmp r15, 0
-        je fin
+;     bucle:
+;         cmp r15, 0
+;         je fin
 
-        movzx rax, byte [rbx]
-        mov al, byte [rsi + rax]
-        mov [rdi], al
-        inc rdi
-        inc rbx
+;         movzx rax, byte [rbx]
+;         mov al, byte [rsi + rax]
+;         mov [rdi], al
+;         inc rdi
+;         inc rbx
 
-        sub r15, 1
+;         sub r15, 1
         
-        jmp bucle
+;         jmp bucle
     
-    fin:
-        print pr, secuenciaImprimibleA
-        ret
+;     fin:
+;         print pr, secuenciaImprimibleA
+;         ret
     
 
 
