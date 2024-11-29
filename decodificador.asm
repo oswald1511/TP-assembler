@@ -33,7 +33,6 @@ section	.data
 
 	TablaConversion		db	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",0
 
-    ;bytes db 0xAA, 0xBB, 0xCC  ; Ejemplo de 3 bytes
     largoResultado      db  0x20
 	
 section	.bss
@@ -49,7 +48,7 @@ section	.text
 global	main
 
 main:
-    mov rsi, secuenciaBinariaA                      ; Puntero a los datos de entrada
+    mov rsi, secuenciaBinariaA          ; Puntero a los datos de entrada
     mov rdi, resultado                  ; Puntero de salida a resultado
     movzx r15, byte [largoSecuenciaA]   ; Número de bytes a procesar 
     cmp r15, 0
@@ -81,12 +80,12 @@ procesar_bytes:
     mov al, [rsi+1]
     ; Extraer los 4 bits mas bajos
     and al, 0x0F        ; 0x0F = 0000 1111
-    shl al, 4           ;desplazar a las izquierda 4 bits
+    shl al, 2           ;desplazar a las izquierda 4 bits
     ; Cargar el tercer byte
     mov bl, [rsi+2]
     ; Extraer los dos bits mas altos
     and bl, 0xC0        ; 0xC0 = 1100 0000
-    shr bl, 6           ;desplazar a la derecha 6 bits
+    shr bl, 6          ;desplazar a la derecha 6 bits
     or al, bl           ;combinar los 4 bits del 2do byte con los 2 bits del 3er byte
     ; Guardar el resultado
     mov [rdi], al
