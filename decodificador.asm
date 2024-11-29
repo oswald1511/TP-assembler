@@ -21,12 +21,10 @@ section	.data
 	secuenciaBinariaA	db	0xC4, 0x94, 0x37, 0x95, 0x63, 0xA2, 0x1D, 0x3C 
 						db	0x86, 0xFC, 0x22, 0xA9, 0x3D, 0x7C, 0xA4, 0x51 
 						db	0x63, 0x7C, 0x29, 0x04, 0x93, 0xBB, 0x65, 0x18 
+
 	largoSecuenciaA		db	0x18 ; 24d
-
-    ;resultado           db  0x2A, 0x2B, 0x2F, 0xC  ; Ejemplo 3 bytes  0xAA, 0xBB, 0xCC resultado esperado : qrvM
    
-    ;pr               db  "%s",0
-
+    pr                  db  "%s",0
 
 	;output esperado: "xJQ3lWOiHTyG/CKpPXykUWN8KQSTu2UY"
 
@@ -35,10 +33,8 @@ section	.data
 
 	TablaConversion		db	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",0
 
-    bytes db 0xAA, 0xBB, 0xCC  ; Ejemplo de 3 bytes
-
-    ;largoResultado      db  0x4
-
+    ;bytes db 0xAA, 0xBB, 0xCC  ; Ejemplo de 3 bytes
+    largoResultado      db  0x20
 	
 section	.bss
 	secuenciaImprimibleA	resb	32
@@ -53,7 +49,7 @@ section	.text
 global	main
 
 main:
-    mov rsi, bytes                      ; Puntero a los datos de entrada
+    mov rsi, secuenciaBinariaA                      ; Puntero a los datos de entrada
     mov rdi, resultado                  ; Puntero de salida a resultado
     movzx r15, byte [largoSecuenciaA]   ; Número de bytes a procesar 
     cmp r15, 0
@@ -107,36 +103,35 @@ procesar_bytes:
     add rsi, 3
     sub r15, 3
     cmp r15, 0              ;si rax es diferento de 0 significa que todavia faltan grupos de 3 bytes por procesar
+     
     jne procesar_bytes
 
 final_programa:
-    ret
 
-
-
-; conversion:
-;     mov rdi, secuenciaImprimibleA
-;     lea rsi, [TablaConversion]
-;     mov rbx, resultado
-;     mov r15, [largoResultado]
+    conversion:
+    mov rdi, secuenciaImprimibleA
+    lea rsi, [TablaConversion]
+    mov rbx, resultado
+    mov r15, [largoResultado]
     
-;     bucle:
-;         cmp r15, 0
-;         je fin
+    bucle:
+        cmp r15, 0
+        je fin
 
-;         movzx rax, byte [rbx]
-;         mov al, byte [rsi + rax]
-;         mov [rdi], al
-;         inc rdi
-;         inc rbx
+        movzx r12, byte [rbx]
+        mov al, byte [rsi + r12]
+        mov [rdi], al
+        inc rdi
+        inc rbx
 
-;         sub r15, 1
+        sub r15, 1
         
-;         jmp bucle
+        jmp bucle
     
-;     fin:
-;         print pr, secuenciaImprimibleA
-;         ret
+    fin:
+        mov byte [rdi], 0 
+        print pr, secuenciaImprimibleA
+        ret
     
 
 
