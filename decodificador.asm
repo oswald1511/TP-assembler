@@ -5,28 +5,16 @@
 %include "macros.asm"
 
 section	.data
-; Casos de prueba:
-; SecuenciaBinariaDePrueba db	0x73, 0x38, 0xE7, 0xF7, 0x34, 0x2C, 0x4F, 0x92
-;						   db	0x49, 0x55, 0xE5, 0x9F, 0x8E, 0xF2, 0x75, 0x5A 
-;						   db	0xD3, 0xC5, 0x53, 0x65, 0x68, 0x52, 0x78, 0x3F
-; SecuenciaImprimibleCodificada	db	"czjn9zQsT5JJVeWfjvJ1WtPFU2VoUng/"
 
-; SecuenciaImprimibleDePrueba db "Qy2A2dhEivizBySXb/09gX+tk/2ExnYb"
-; SecuenciaBinariaDecodificada	db	0x43, 0x2D, 0x80, 0xD9, 0xD8, 0x44, 0x8A, 0xF8 
-;								db	0xB3, 0x07, 0x24, 0x97, 0x6F, 0xFD, 0x3D, 0x81 
-;								db	0x7F, 0xAD, 0x93, 0xFD, 0x84, 0xC6, 0x76, 0x1B
- 
-; Un codificador/decodificador online se puede encontrar en https://www.rapidtables.com/web/tools/base64-encode.html
-	
 	secuenciaBinariaA	db	0xC4, 0x94, 0x37, 0x95, 0x63, 0xA2, 0x1D, 0x3C 
 						db	0x86, 0xFC, 0x22, 0xA9, 0x3D, 0x7C, 0xA4, 0x51 
 						db	0x63, 0x7C, 0x29, 0x04, 0x93, 0xBB, 0x65, 0x18 
+	;output esperado: "xJQ3lWOiHTyG/CKpPXykUWN8KQSTu2UY"
 
 	largoSecuenciaA		db	0x18 ; 24d
    
-    pr                  db  "%s",0
+    formato_string      db  "%s",0
 
-	;output esperado: "xJQ3lWOiHTyG/CKpPXykUWN8KQSTu2UY"
 
 	secuenciaImprmibleB db	"vhyAHZucgTUuznwTDciGQ8m4TuvUIyjU"
 	largoSecuenciaB		db	0x20 ; 32d
@@ -41,7 +29,7 @@ section	.bss
 	secuenciaBinariaB		resb	24
 	
 ;plan de ataque:
-;hago el manejo de bytes de 3 en 3 y voy almacenando en el registro rdi. Cada 3 bytes se guardan 4 bytes en rdi pero todo con 00 al principio, se entiende? si no se entiende, me preguntas. Esa parte esta hecha aunque no compila, pero la logica esta.
+;hago el manejo de bytes de 3 en 3 y voy almacenando en el registro rdi. Cada 3 bytes se guardan 4 bytes en rdi pero todo con 00 al principio. 
 ;luego paso el registro rdi que va a tener los 32 bytes al decodificador a que traduzca su valor con la tabla
 ;luego el byte decodificado se guarda en la variable secuenciaImprimibleA
 section	.text
@@ -52,86 +40,83 @@ main:
     mov rdi, resultado                  ; Puntero de salida a resultado
     movzx r15, byte [largoSecuenciaA]   ; Número de bytes a procesar 
     cmp r15, 0
-    je final_programa                   ; si el largo de la secuencia es 0 salta al final del programa
+    je conversion                       ; si el largo de la secuencia es 0 salta a la parte de conversion
 procesar_bytes:
     ; Cargar el primer byte
     mov al, byte [rsi]
     ; Extraer los primeros 6 bits
     and al, 0xFC              ; 0xFC = 1111 1100
-    shr al, 2               ; Desplazar a la derecha 2 bits
+    shr al, 2                 ; Desplazar a la derecha 2 bits
     ; Guardar el resultado
     mov [rdi], al
-    add rdi, 1               ; Avanzar el puntero de salida
+    add rdi, 1                ; Avanzar el puntero de salida
     ; Cargar de nuevo el primer byte
     mov al, byte [rsi]
     ; Extraer los 2 bits más bajos
     and al, 0x03              ; 0x03 = 0000 0011
-    shl al, 4               ; Desplazar a la izquierda 4 bits
+    shl al, 4                 ; Desplazar a la izquierda 4 bits
     ; Cargar el segundo byte
     mov bl, [rsi+1]
     ; Extraer los 4 bits más altos
     and bl, 0xF0              ; 0xF0 = 1111 0000
-    shr bl, 4               ; Desplazar a la derecha 4 bits
-    or  al, bl               ; Combinar con los 2 bits del primer byte
+    shr bl, 4                 ; Desplazar a la derecha 4 bits
+    or  al, bl                ; Combinar con los 2 bits del primer byte
     ; Guardar el resultado
     mov [rdi], al
-    add rdi, 1             ; Avanzar el puntero de salida
+    add rdi, 1                ; Avanzar el puntero de salida
     ; cargar el segundo byte 
     mov al, [rsi+1]
     ; Extraer los 4 bits mas bajos
-    and al, 0x0F        ; 0x0F = 0000 1111
-    shl al, 2           ;desplazar a las izquierda 4 bits
+    and al, 0x0F              ; 0x0F = 0000 1111
+    shl al, 2                 ;desplazar a las izquierda 2 bits
     ; Cargar el tercer byte
     mov bl, [rsi+2]
     ; Extraer los dos bits mas altos
-    and bl, 0xC0        ; 0xC0 = 1100 0000
-    shr bl, 6          ;desplazar a la derecha 6 bits
-    or al, bl           ;combinar los 4 bits del 2do byte con los 2 bits del 3er byte
+    and bl, 0xC0             ; 0xC0 = 1100 0000
+    shr bl, 6                ;desplazar a la derecha 6 bits
+    or al, bl                ;combinar los 4 bits del 2do byte con los 2 bits del 3er byte
     ; Guardar el resultado
     mov [rdi], al
-    add rdi, 1         ; Avanzar el puntero de salida
+    add rdi, 1               ; Avanzar el puntero de salida
     ; Cargar el tercer byte
     mov al, [rsi+2]
     ; Extraer los 6 bits mas bajos
-    and al, 0x3F        ; 0x3F = 0011 1111
+    and al, 0x3F             ; 0x3F = 0011 1111
     ;Guardar el resultado
     mov [rdi], al
-    add rdi, 1     ; Avanzar el puntero de salida
+    add rdi, 1               ; Avanzar el puntero de salida
 
     ; Avanzar al siguiente grupo de 3 bytes
     add rsi, 3
     sub r15, 3
-    cmp r15, 0              ;si rax es diferento de 0 significa que todavia faltan grupos de 3 bytes por procesar
+    cmp r15, 0               ;si r15 es diferente de 0 significa que todavia faltan grupos de 3 bytes por procesar
      
     jne procesar_bytes
 
-final_programa:
-
-    conversion:
+conversion:
     mov rdi, secuenciaImprimibleA
-    lea rsi, [TablaConversion]
+    lea rsi, [TablaConversion]      ;guardo la direccion de la tabla en rsi
     mov rbx, resultado
     mov r15, [largoResultado]
     
-    bucle:
-        cmp r15, 0
-        je fin
+bucle:
 
-        movzx r12, byte [rbx]
-        mov al, byte [rsi + r12]
-        mov [rdi], al
-        inc rdi
-        inc rbx
+    movzx r12, byte [rbx]           ;muevo un byte de resultado a r12
+    mov al, byte [rsi + r12]        ;obtengo el valor de la tabla en la posicion r12
+    mov [rdi], al                   ;guardo en secuenciaImprimibleA el valor de la tabla
+    inc rdi
+    inc rbx
 
-        sub r15, 1
-        
-        jmp bucle
+    sub r15, 1                      ;resto uno al largo del resultado
     
-    fin:
-        mov byte [rdi], 0 
-        print pr, secuenciaImprimibleA
-        ret
+    cmp r15, 0                      ;me fijo si yo obtuve todos los resultados, sino sigo en el bucle
+    jne bucle
     
+fin:
+    mov byte [rdi], 0               ;pongo un 0 al final de la secuenciaImprimibleA
+    print formato_string, secuenciaImprimibleA
+    ret
+
 
 
 
